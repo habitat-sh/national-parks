@@ -1,0 +1,18 @@
+#!/bin/bash
+
+exec 2>&1
+
+echo "Starting Apache Tomcat"
+
+export JAVA_HOME=$(hab pkg path core/jre8)
+export TOMCAT_HOME="$(hab pkg path core/tomcat8)/tc"
+
+{{#if bind.database ~}}
+export CATALINA_OPTS="-DMONGODB_SERVICE_HOST={{bind.database.first.sys.ip}} -DMONGODB_SERVICE_PORT={{bind.database.first.cfg.port}}"
+{{else ~}}
+export CATALINA_OPTS="-DMONGODB_SERVICE_HOST={{cfg.mongodb_service_host}} -DMONGODB_SERVICE_PORT={{cfg.mongodb_service_port}}"
+{{/if ~}}
+
+cp {{pkg.path}}/*.war $TOMCAT_HOME/webapps
+
+exec ${TOMCAT_HOME}/bin/catalina.sh run
