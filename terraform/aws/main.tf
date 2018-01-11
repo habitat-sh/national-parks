@@ -1,42 +1,35 @@
-# Make sure the correct version of terraform is installed
 terraform {
   required_version = "> 0.11.0"
 }
 
 provider "aws" {
-  profile = "${var.aws_profile}"
+  profile                 = "${var.aws_profile}"
   shared_credentials_file = "~/.aws/credentials"
-  region     = "${var.aws_region}"
+  region                  = "${var.aws_region}"
 }
-
 
 resource "random_id" "national_parks_id" {
   byte_length = 4
 }
 
-# Create a VPC to launch our instances into
 resource "aws_vpc" "default" {
   cidr_block = "10.0.0.0/16"
 
-  # Tag our vpc with the keyname used to identify it
   tags {
-    Name = "${random_id.national_parks_id.hex}-national-parks"
+    Name = "${var.aws_key_pair_name}_${random_id.national_parks_id.hex}_national_parks"
   }
 }
 
-# Create an internet gateway to give our subnet access to the outside world
 resource "aws_internet_gateway" "default" {
   vpc_id = "${aws_vpc.default.id}"
 }
 
-# Grant the VPC internet access on its main route table
 resource "aws_route" "internet_access" {
   route_table_id         = "${aws_vpc.default.main_route_table_id}"
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = "${aws_internet_gateway.default.id}"
 }
 
-# Create a subnet to launch our instances into
 resource "aws_subnet" "default" {
   vpc_id                  = "${aws_vpc.default.id}"
   cidr_block              = "10.0.1.0/24"
@@ -52,9 +45,9 @@ resource "aws_security_group" "national-parks" {
   vpc_id      = "${aws_vpc.default.id}"
 
   ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -108,7 +101,7 @@ resource "aws_security_group" "national-parks" {
   }
 
   tags {
-    X-Contact     = "The Example Maintainer <maintainer@example.com>"
+    X-Contact     = "${var.aws_key_pair_name} <maintainer@example.com>"
     X-Application = "national-parks"
     X-ManagedBy   = "Terraform"
   }
@@ -147,9 +140,9 @@ resource "aws_instance" "initial-peer" {
   associate_public_ip_address = true
 
   tags {
-    Name      = "national_parks_${random_id.national_parks_id.hex}_initial_peer"
+    Name      = "${var.aws_key_pair_name}_${random_id.national_parks_id.hex}_initial_peer"
     X-Dept    = "SCE"
-    X-Contact = "${var.aws_key_pair_name}"
+    X-Contact = "${var.aws_key_pair_name} <maintainer@example.com>"
   }
 
   provisioner "file" {
@@ -188,14 +181,14 @@ resource "aws_instance" "np-mongodb" {
   ami                         = "${data.aws_ami.ubuntu.id}"
   instance_type               = "m4.large"
   key_name                    = "${var.aws_key_pair_name}"
-  subnet_id                   = "${aws_subnet_id.national-parks.id}"
+  subnet_id                   = "${aws_subnet.default.id}"
   vpc_security_group_ids      = ["${aws_security_group.national-parks.id}"]
   associate_public_ip_address = true
 
   tags {
-    Name      = "national_parks_${random_id.national_parks_id.hex}_np_mongodb"
+    Name      = "${var.aws_key_pair_name}_${random_id.national_parks_id.hex}_np_mongodb"
     X-Dept    = "SCE"
-    X-Contact = "${var.aws_key_pair_name}"
+    X-Contact = "${var.aws_key_pair_name} <maintainer@example.com>"
   }
 
   provisioner "file" {
@@ -208,10 +201,6 @@ resource "aws_instance" "np-mongodb" {
     destination = "/home/${var.aws_image_user}/hab-sup.service"
   }
 
-  provisioner "local-exec" {
-    command = "scp -oStrictHostKeyChecking=no -i ${var.aws_key_pair_file} ${var.local_hart_dir}/${var.np_mongodb_hart} ${var.aws_image_user}@${self.public_ip}:/home/${var.aws_image_user}"
-  }
-
   provisioner "remote-exec" {
     inline = [
       "sudo adduser --group hab",
@@ -222,7 +211,7 @@ resource "aws_instance" "np-mongodb" {
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
-      "sudo hab svc load ${var.habitat_origin}/np-mongodb --group prod --strategy at-once --",
+      "sudo hab svc load ${var.habitat_origin}/np-mongodb --group prod --strategy at-once",
     ]
   }
 }
@@ -236,12 +225,12 @@ resource "aws_instance" "national-parks" {
   ami                         = "${data.aws_ami.ubuntu.id}"
   instance_type               = "m4.large"
   key_name                    = "${var.aws_key_pair_name}"
-  subnet_id                   = "${data.aws_subnet_ids.national-parks.ids[1]}"
+  subnet_id                   = "${aws_subnet.default.id}"
   vpc_security_group_ids      = ["${aws_security_group.national-parks.id}"]
   associate_public_ip_address = true
 
   tags {
-    Name      = "national_parks_${random_id.national_parks_id.hex}_national_parks"
+    Name      = "${var.aws_key_pair_name}_${random_id.national_parks_id.hex}_national_parks"
     X-Dept    = "SCE"
     X-Contact = "echohack"
   }
@@ -254,10 +243,6 @@ resource "aws_instance" "national-parks" {
   provisioner "file" {
     content     = "${data.template_file.sup_service.rendered}"
     destination = "/home/${var.aws_image_user}/hab-sup.service"
-  }
-
-  provisioner "local-exec" {
-    command = "scp -oStrictHostKeyChecking=no -i ${var.aws_key_pair_file} ${var.local_hart_dir}/${var.national_parks_hart} ${var.aws_image_user}@${self.public_ip}:/home/${var.aws_image_user}"
   }
 
   provisioner "remote-exec" {

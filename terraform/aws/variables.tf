@@ -6,31 +6,20 @@ variable "aws_profile" {
   default = "default"
 }
 
-variable "aws_access_key" {
-  default = ""
-}
-variable "aws_secret_key" {
-  default = ""
-}
-
 variable "aws_key_pair_file" {
-  default = "~/.ssh/id_rsa"
+  default = "~/.ssh/example.pem"
 }
 
 variable "aws_key_pair_name" {
-  default = ""
+  default = "example"
 }
 
 variable "aws_image_user" {
   default = "ubuntu"
 }
 
-#
-# Habitat Variables
-# 
-
 variable "habitat_origin" {
-  default = "core"
+  default = "example"
 }
 
 variable "env" {
@@ -42,5 +31,5 @@ variable "bldr_url" {
 }
 
 variable "release_channel" {
-  default "stable"
+  default = "stable"
 }
