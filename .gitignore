@@ -5,3 +5,4 @@ national-parks.iml
 results/
 .terraform/
 *.tfstate
+terraform.tfstate.backup
