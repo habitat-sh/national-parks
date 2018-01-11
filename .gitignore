@@ -4,6 +4,5 @@ target/
 national-parks.iml
 results/
 .terraform/
-*.tfstate
+*.tfstate*
 *.tfvars
-terraform.tfstate.backup
