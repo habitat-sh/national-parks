@@ -18,7 +18,7 @@ variable "aws_key_pair_name" {
 }
 
 variable "aws_image_user" {
-  default = "centos"
+  default = "ubuntu"
 }
 
 variable "local_hart_dir" {
