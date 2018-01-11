@@ -232,7 +232,7 @@ resource "aws_instance" "national-parks" {
   tags {
     Name      = "${var.aws_key_pair_name}_${random_id.national_parks_id.hex}_national_parks"
     X-Dept    = "SCE"
-    X-Contact = "echohack"
+    X-Contact = "${var.aws_key_pair_name}"
   }
 
   provisioner "file" {
