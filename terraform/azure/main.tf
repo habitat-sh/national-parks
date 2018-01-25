@@ -346,7 +346,7 @@ resource "azurerm_virtual_machine" "mongodb" {
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
-      "sudo hab svc load ${var.habitat_origin}/np-mongodb --group prod --strategy at-once",
+      "sudo hab svc load ${var.habitat_origin}/np-mongodb --group ${var.group} --channel ${var.release_channel} --strategy ${var.update_strategy}",
     ]
   }
 
@@ -426,7 +426,7 @@ resource "azurerm_virtual_machine" "app" {
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
-      "sudo hab svc load ${var.habitat_origin}/national-parks --group prod --bind database:np-mongodb.prod --strategy at-once",
+      "sudo hab svc load ${var.habitat_origin}/national-parks --group ${var.group} --channel ${var.release_channel} --strategy ${var.update_strategy} --bind database:np-mongodb.${var.group}",
     ]
   }
 

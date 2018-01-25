@@ -33,3 +33,23 @@ variable "application" {
 variable "habitat_origin" {
   default = "scottford"
 }
+
+# Habitat build url
+variable "bldr_url" {
+  default = "https://bldr.habitat.sh"
+}
+
+# Habitat release channel
+variable "release_channel" {
+  default = "stable"
+}
+
+# Habitat supervior group name
+variable "group" {
+  default = "dev"
+}
+
+# Habitat update strategy 
+variable "update_strategy" {
+  default = "at-once"
+}
