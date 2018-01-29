@@ -1,7 +1,0 @@
-# Symlink config files into $TOMCAT_HOME/conf
-for file in $(cd {{pkg.svc_config_path}}; ls -1 *.xml)
-do
-  echo "Linking $file"
-  target="${file//_//}"
-  ln -vsf {{pkg.svc_config_path}}/$file {{pkg.svc_var_path}}/tc/$target
-done
