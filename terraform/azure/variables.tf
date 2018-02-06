@@ -31,5 +31,21 @@ variable "application" {
 }
 
 variable "habitat_origin" {
-  default = "scottford"
+  default = "core"
+}
+
+variable "bldr_url" {
+  default = "https://bldr.habitat.sh"
+}
+
+variable "release_channel" {
+  default = "stable"
+}
+
+variable "group" {
+  default = "dev"
+}
+
+variable "update_strategy" {
+  default = "at-once"
 }
