@@ -1,5 +1,5 @@
 variable "azure_region" {
-  default = "westus2"
+  default = "eastus"
 }
 
 variable "azure_public_key_path" {
@@ -31,7 +31,7 @@ variable "application" {
 }
 
 variable "habitat_origin" {
-  default = "core"
+  default = "scottford"
 }
 
 variable "bldr_url" {
