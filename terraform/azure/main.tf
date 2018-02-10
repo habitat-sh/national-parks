@@ -176,6 +176,8 @@ resource "random_id" "randomId" {
 
 //////STORAGE///////
 ////////////////////
+
+# Create initial peer
 resource "azurerm_storage_account" "stor" {
   name                     = "stor${random_id.randomId.hex}"
   resource_group_name      = "${azurerm_resource_group.rg.name}"
@@ -241,33 +243,16 @@ resource "azurerm_virtual_machine" "initial-peer" {
     storage_uri = "${azurerm_storage_account.stor.primary_blob_endpoint}"
   }
 
-  connection {
-    host        = "${azurerm_public_ip.pip.0.ip_address}"
-    user        = "${var.azure_image_user}"
-    password    = "${var.azure_image_password}"
-  }
+  provisioner "habitat" {
+    permanent_peer = true
+    use_sudo       = true
+    service_type   = "systemd"
 
-  provisioner "file" {
-    content     = "${data.template_file.install_hab.rendered}"
-    destination = "/tmp/install_hab.sh"
-  }
-
-  provisioner "file" {
-    content     = "${data.template_file.initial_peer.rendered}"
-    destination = "/home/${var.azure_image_user}/hab-sup.service"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo adduser --group hab",
-      "sudo useradd -g hab hab",
-      "chmod +x /tmp/install_hab.sh",
-      "sudo /tmp/install_hab.sh",
-      "sudo mv /home/${var.azure_image_user}/hab-sup.service /etc/systemd/system/hab-sup.service",
-      "sudo systemctl daemon-reload",
-      "sudo systemctl start hab-sup",
-      "sudo systemctl enable hab-sup",
-    ]
+    connection {
+      host        = "${azurerm_public_ip.pip.0.ip_address}"
+      user        = "${var.azure_image_user}"
+      password    = "${var.azure_image_password}"
+    }
   }
 
   tags {
@@ -277,6 +262,7 @@ resource "azurerm_virtual_machine" "initial-peer" {
   }
 }
 
+# Create mongodb instance
 resource "azurerm_virtual_machine" "mongodb" {
   depends_on            = ["azurerm_virtual_machine.initial-peer"]
   name                  = "${var.application}-mongodb"
@@ -320,34 +306,24 @@ resource "azurerm_virtual_machine" "mongodb" {
     storage_uri = "${azurerm_storage_account.stor.primary_blob_endpoint}"
   }
 
-  connection {
-    host        = "${azurerm_public_ip.pip.1.ip_address}"
-    user        = "${var.azure_image_user}"
-    password    = "${var.azure_image_password}"
-  }
+  provisioner "habitat" {
+    peer         = "${azurerm_public_ip.pip.0.ip_address}"
+    use_sudo     = true
+    service_type = "systemd"
 
-  provisioner "file" {
-    content     = "${data.template_file.install_hab.rendered}"
-    destination = "/tmp/install_hab.sh"
-  }
+    service {
+      name     = "${var.habitat_origin}/np-mongodb"
+      topology = "standalone"
+      group    = "${var.group}"
+      channel  = "${var.release_channel}"
+      strategy = "${var.update_strategy}"
+    }
 
-  provisioner "file" {
-    content     = "${data.template_file.sup_service.rendered}"
-    destination = "/home/${var.azure_image_user}/hab-sup.service"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo adduser --group hab",
-      "sudo useradd -g hab hab",
-      "chmod +x /tmp/install_hab.sh",
-      "sudo /tmp/install_hab.sh",
-      "sudo mv /home/${var.azure_image_user}/hab-sup.service /etc/systemd/system/hab-sup.service",
-      "sudo systemctl daemon-reload",
-      "sudo systemctl start hab-sup",
-      "sudo systemctl enable hab-sup",
-      "sudo hab svc load ${var.habitat_origin}/np-mongodb --group ${var.group} --channel ${var.release_channel} --strategy ${var.update_strategy}",
-    ]
+    connection {
+      host        = "${azurerm_public_ip.pip.1.ip_address}"
+      user        = "${var.azure_image_user}"
+      password    = "${var.azure_image_password}"
+    }
   }
 
   tags {
@@ -357,6 +333,7 @@ resource "azurerm_virtual_machine" "mongodb" {
   }
 }
 
+# Create web application instance
 resource "azurerm_virtual_machine" "app" {
   depends_on            = ["azurerm_virtual_machine.mongodb"]
   name                  = "${var.application}-app"
@@ -400,34 +377,25 @@ resource "azurerm_virtual_machine" "app" {
     storage_uri = "${azurerm_storage_account.stor.primary_blob_endpoint}"
   }
 
-  connection {
-    host        = "${azurerm_public_ip.pip.2.ip_address}"
-    user        = "${var.azure_image_user}"
-    password    = "${var.azure_image_password}"
-  }
+  provisioner "habitat" {
+    peer         = "${azurerm_public_ip.pip.0.ip_address}"
+    use_sudo     = true
+    service_type = "systemd"
 
-  provisioner "file" {
-    content     = "${data.template_file.install_hab.rendered}"
-    destination = "/tmp/install_hab.sh"
-  }
+    service {
+      binds    = ["database:np-mongodb.${var.group}"]
+      name     = "${var.habitat_origin}/national-parks"
+      topology = "standalone"
+      group    = "${var.group}"
+      channel  = "${var.release_channel}"
+      strategy = "${var.update_strategy}"
+    }
 
-  provisioner "file" {
-    content     = "${data.template_file.sup_service.rendered}"
-    destination = "/home/${var.azure_image_user}/hab-sup.service"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo adduser --group hab",
-      "sudo useradd -g hab hab",
-      "chmod +x /tmp/install_hab.sh",
-      "sudo /tmp/install_hab.sh",
-      "sudo mv /home/${var.azure_image_user}/hab-sup.service /etc/systemd/system/hab-sup.service",
-      "sudo systemctl daemon-reload",
-      "sudo systemctl start hab-sup",
-      "sudo systemctl enable hab-sup",
-      "sudo hab svc load ${var.habitat_origin}/national-parks --group ${var.group} --channel ${var.release_channel} --strategy ${var.update_strategy} --bind database:np-mongodb.${var.group}",
-    ]
+    connection {
+      host        = "${azurerm_public_ip.pip.2.ip_address}"
+      user        = "${var.azure_image_user}"
+      password    = "${var.azure_image_password}"
+    }
   }
 
   tags {
@@ -435,27 +403,4 @@ resource "azurerm_virtual_machine" "app" {
     X-Application = "national-parks"
     X-ManagedBy   = "Terraform"
   }
-}
-
-////////////////////////////////
-// Templates
-data "template_file" "initial_peer" {
-  template = "${file("${path.module}/../templates/hab-sup.service")}"
-
-  vars {
-    flags = "--auto-update --listen-gossip 0.0.0.0:9638 --listen-http 0.0.0.0:9631 --permanent-peer"
-  }
-}
-
-data "template_file" "sup_service" {
-  depends_on = ["azurerm_virtual_machine.initial-peer"]
-  template = "${file("${path.module}/../templates/hab-sup.service")}"
-
-  vars {
-    flags = "--auto-update --peer ${azurerm_public_ip.pip.0.ip_address} --listen-gossip 0.0.0.0:9638 --listen-http 0.0.0.0:9631"
-  }
-}
-
-data "template_file" "install_hab" {
-  template = "${file("${path.module}/../templates/install-hab.sh")}"
 }
