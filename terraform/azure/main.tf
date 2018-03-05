@@ -10,7 +10,7 @@ provider "azurerm" {
 
 # Create a resource group if it doesn’t exist
 resource "azurerm_resource_group" "rg" {
-  name     = "${var.application}-rg"
+  name     = "${var.application}-${var.habitat_origin}-rg"
   location = "${var.azure_region}"
 
   tags {
