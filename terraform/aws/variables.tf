@@ -7,11 +7,11 @@ variable "aws_profile" {
 }
 
 variable "aws_key_pair_file" {
-  default = "~/.ssh/example.pem"
+  default = "~/.ssh/james-us-west-2.pem"
 }
 
 variable "aws_key_pair_name" {
-  default = "example"
+  default = "james-us-west-2"
 }
 
 variable "aws_image_user" {
@@ -19,7 +19,7 @@ variable "aws_image_user" {
 }
 
 variable "habitat_origin" {
-  default = "example"
+  default = "jamesc"
 }
 
 variable "env" {
