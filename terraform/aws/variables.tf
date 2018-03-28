@@ -33,3 +33,11 @@ variable "bldr_url" {
 variable "release_channel" {
   default = "stable"
 }
+
+variable "group" {
+  default = "dev"
+}
+
+variable "update_strategy" {
+  default = "at-once"
+}
