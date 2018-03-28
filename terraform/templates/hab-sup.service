@@ -2,7 +2,7 @@
 Description=Habitat Supervisor
 
 [Service]
-ExecStartPre=/bin/bash -c "/bin/systemctl 
+ExecStartPre=/bin/bash -c /bin/systemctl
 ExecStart=/bin/hab run ${flags}
 
 [Install]
