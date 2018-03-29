@@ -3,8 +3,8 @@ services:
   mongodb:
     image: jamesc000/np-mongodb
     command: --strategy at-once
-    environment:
-      HAB_MONGODB: "[mongod.net]\nbind_ip = '0.0.0.0'\n[mongod.security]\ncluster_auth_mode = ''"
+    #environment:
+      #HAB_MONGODB: "[mongod.net]\nbind_ip = '0.0.0.0'\n[mongod.security]\ncluster_auth_mode = ''"
   national-parks:
     image: jamesc000/national-parks
     ports:
