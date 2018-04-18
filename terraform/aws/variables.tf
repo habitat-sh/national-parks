@@ -1,26 +1,18 @@
-variable "aws_region" {
-  default = "us-west-2"
-}
+variable "aws_region" {}
 
 variable "aws_profile" {
   default = "default"
 }
 
-variable "aws_key_pair_file" {
-  default = "~/.ssh/example.pem"
-}
+variable "aws_key_pair_file" {}
 
-variable "aws_key_pair_name" {
-  default = "example"
-}
+variable "aws_key_pair_name" {}
 
 variable "aws_image_user" {
   default = "ubuntu"
 }
 
-variable "habitat_origin" {
-  default = "example"
-}
+variable "habitat_origin" {}
 
 variable "env" {
   default = "dev"
@@ -40,4 +32,20 @@ variable "group" {
 
 variable "update_strategy" {
   default = "at-once"
+}
+
+variable "tag_dept" {}
+
+variable "tag_customer" {}
+
+variable "tag_project" {}
+
+variable "tag_application" {
+  default = "national-parks"
+}
+
+variable "tag_contact" {}
+
+variable "tag_ttl" {
+  default = "8"
 }

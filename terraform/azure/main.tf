@@ -10,33 +10,41 @@ provider "azurerm" {
 
 # Create a resource group if it doesn’t exist
 resource "azurerm_resource_group" "rg" {
-  name     = "${var.application}-${var.habitat_origin}-rg"
+  name     = "${var.tag_application}-${var.habitat_origin}-rg"
   location = "${var.azure_region}"
 
   tags {
-    X-Contact     = "The Example Maintainer <maintainer@example.com>"
-    X-Application = "national-parks"
-    X-ManagedBy   = "Terraform"
+    X-Name        = "${var.tag_application}-${var.habitat_origin}-rg"
+    X-Dept        = "${var.tag_dept}"
+    X-Customer    = "${var.tag_customer}"
+    X-Project     = "${var.tag_project}"
+    X-Application = "${var.tag_application}"
+    X-Contact     = "${var.tag_contact}"
+    X-TTL         = "${var.tag_ttl}"
   }
 }
 
 # Create virtual network
 resource "azurerm_virtual_network" "vnet" {
-  name                = "${var.application}-vnet"
+  name                = "${var.tag_application}-vnet"
   address_space       = ["10.0.0.0/16"]
   location            = "${var.azure_region}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
 
   tags {
-    X-Contact     = "The Example Maintainer <maintainer@example.com>"
-    X-Application = "national-parks"
-    X-ManagedBy   = "Terraform"
+    X-Name        = "${var.tag_application}-${var.habitat_origin}-vnet"
+    X-Dept        = "${var.tag_dept}"
+    X-Customer    = "${var.tag_customer}"
+    X-Project     = "${var.tag_project}"
+    X-Application = "${var.tag_application}"
+    X-Contact     = "${var.tag_contact}"
+    X-TTL         = "${var.tag_ttl}"
   }
 }
 
 # Create subnet
 resource "azurerm_subnet" "subnet" {
-  name                 = "${var.application}-subnet"
+  name                 = "${var.tag_application}-subnet"
   resource_group_name  = "${azurerm_resource_group.rg.name}"
   virtual_network_name = "${azurerm_virtual_network.vnet.name}"
   address_prefix       = "10.0.10.0/24"
@@ -44,22 +52,26 @@ resource "azurerm_subnet" "subnet" {
 
 # Create public IPs
 resource "azurerm_public_ip" "pip" {
-  name                         = "${var.application}-pip-${count.index}"
+  name                         = "${var.tag_application}-pip-${count.index}"
   location                     = "${var.azure_region}"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
   public_ip_address_allocation = "static"
-  count = 3
+  count                        = 3
 
   tags {
-    X-Contact     = "The Example Maintainer <maintainer@example.com>"
-    X-Application = "national-parks"
-    X-ManagedBy   = "Terraform"
+    X-Name        = "${var.tag_application}-${var.habitat_origin}-pip-${count.index}"
+    X-Dept        = "${var.tag_dept}"
+    X-Customer    = "${var.tag_customer}"
+    X-Project     = "${var.tag_project}"
+    X-Application = "${var.tag_application}"
+    X-Contact     = "${var.tag_contact}"
+    X-TTL         = "${var.tag_ttl}"
   }
 }
 
 # Create Network Security Group and rule
 resource "azurerm_network_security_group" "sg" {
-  name                = "${var.application}-sg"
+  name                = "${var.tag_application}-sg"
   location            = "${var.azure_region}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
 
@@ -136,19 +148,23 @@ resource "azurerm_network_security_group" "sg" {
   }
 
   tags {
-    X-Contact     = "The Example Maintainer <maintainer@example.com>"
-    X-Application = "national-parks"
-    X-ManagedBy   = "Terraform"
+    X-Name        = "${var.tag_application}-${var.habitat_origin}-sg"
+    X-Dept        = "${var.tag_dept}"
+    X-Customer    = "${var.tag_customer}"
+    X-Project     = "${var.tag_project}"
+    X-Application = "${var.tag_application}"
+    X-Contact     = "${var.tag_contact}"
+    X-TTL         = "${var.tag_ttl}"
   }
 }
 
 # Create network interface
 resource "azurerm_network_interface" "nic" {
-  name                      = "${var.application}-nic${count.index}"
+  name                      = "${var.tag_application}-nic${count.index}"
   location                  = "${var.azure_region}"
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   network_security_group_id = "${azurerm_network_security_group.sg.id}"
-  count = 3
+  count                     = 3
 
   ip_configuration {
     name                          = "ipconfig${count.index}"
@@ -158,9 +174,13 @@ resource "azurerm_network_interface" "nic" {
   }
 
   tags {
-    X-Contact     = "The Example Maintainer <maintainer@example.com>"
-    X-Application = "national-parks"
-    X-ManagedBy   = "Terraform"
+    X-Name        = "${var.tag_application}-${var.habitat_origin}-nic${count.index}"
+    X-Dept        = "${var.tag_dept}"
+    X-Customer    = "${var.tag_customer}"
+    X-Project     = "${var.tag_project}"
+    X-Application = "${var.tag_application}"
+    X-Contact     = "${var.tag_contact}"
+    X-TTL         = "${var.tag_ttl}"
   }
 }
 
@@ -186,27 +206,31 @@ resource "azurerm_storage_account" "stor" {
   account_replication_type = "LRS"
 
   tags {
-    X-Contact     = "The Example Maintainer <maintainer@example.com>"
-    X-Application = "national-parks"
-    X-ManagedBy   = "Terraform"
+    X-Name        = "${var.tag_application}-${var.habitat_origin}-stor${random_id.randomId.hex}"
+    X-Dept        = "${var.tag_dept}"
+    X-Customer    = "${var.tag_customer}"
+    X-Project     = "${var.tag_project}"
+    X-Application = "${var.tag_application}"
+    X-Contact     = "${var.tag_contact}"
+    X-TTL         = "${var.tag_ttl}"
   }
 }
 
 resource "azurerm_storage_container" "storcont" {
-  name 		              = "vhds"
-  resource_group_name 	= "${azurerm_resource_group.rg.name}"
-  storage_account_name 	= "${azurerm_storage_account.stor.name}"
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.rg.name}"
+  storage_account_name  = "${azurerm_storage_account.stor.name}"
   container_access_type = "private"
 }
 
 //////INSTANCES///////
 //////////////////////
 resource "azurerm_virtual_machine" "initial-peer" {
-  name                  = "${var.application}-initialpeer"
-  location              = "${var.azure_region}"
-  resource_group_name   = "${azurerm_resource_group.rg.name}"
-  network_interface_ids = ["${azurerm_network_interface.nic.0.id}"]
-  vm_size               = "Standard_DS1_v2"
+  name                          = "${var.tag_application}-${var.habitat_origin}-initialpeer"
+  location                      = "${var.azure_region}"
+  resource_group_name           = "${azurerm_resource_group.rg.name}"
+  network_interface_ids         = ["${azurerm_network_interface.nic.0.id}"]
+  vm_size                       = "Standard_DS1_v2"
   delete_os_disk_on_termination = true
 
   storage_image_reference {
@@ -217,14 +241,14 @@ resource "azurerm_virtual_machine" "initial-peer" {
   }
 
   storage_os_disk {
-    name          = "${var.application}-initialpeer-osdisk"
-    vhd_uri       = "${azurerm_storage_account.stor.primary_blob_endpoint}${azurerm_storage_container.storcont.name}/${var.application}-initialpeer-osdisk.vhd"
+    name          = "${var.tag_application}-initialpeer-osdisk"
+    vhd_uri       = "${azurerm_storage_account.stor.primary_blob_endpoint}${azurerm_storage_container.storcont.name}/${var.tag_application}-initialpeer-osdisk.vhd"
     caching       = "ReadWrite"
     create_option = "FromImage"
   }
 
   os_profile {
-    computer_name  = "${var.application}-initialpeer"
+    computer_name  = "${var.tag_application}-initialpeer"
     admin_username = "${var.azure_image_user}"
     admin_password = "${var.azure_image_password}"
   }
@@ -249,27 +273,31 @@ resource "azurerm_virtual_machine" "initial-peer" {
     service_type   = "systemd"
 
     connection {
-      host        = "${azurerm_public_ip.pip.0.ip_address}"
-      user        = "${var.azure_image_user}"
-      password    = "${var.azure_image_password}"
+      host     = "${azurerm_public_ip.pip.0.ip_address}"
+      user     = "${var.azure_image_user}"
+      password = "${var.azure_image_password}"
     }
   }
 
   tags {
-    X-Contact     = "The Example Maintainer <maintainer@example.com>"
-    X-Application = "national-parks"
-    X-ManagedBy   = "Terraform"
+    X-Name        = "${var.tag_application}-${var.habitat_origin}-initialpeer"
+    X-Dept        = "${var.tag_dept}"
+    X-Customer    = "${var.tag_customer}"
+    X-Project     = "${var.tag_project}"
+    X-Application = "${var.tag_application}"
+    X-Contact     = "${var.tag_contact}"
+    X-TTL         = "${var.tag_ttl}"
   }
 }
 
 # Create mongodb instance
 resource "azurerm_virtual_machine" "mongodb" {
-  depends_on            = ["azurerm_virtual_machine.initial-peer"]
-  name                  = "${var.application}-mongodb"
-  location              = "${var.azure_region}"
-  resource_group_name   = "${azurerm_resource_group.rg.name}"
-  network_interface_ids = ["${azurerm_network_interface.nic.1.id}"]
-  vm_size               = "Standard_DS1_v2"
+  depends_on                    = ["azurerm_virtual_machine.initial-peer"]
+  name                          = "${var.tag_application}-mongodb"
+  location                      = "${var.azure_region}"
+  resource_group_name           = "${azurerm_resource_group.rg.name}"
+  network_interface_ids         = ["${azurerm_network_interface.nic.1.id}"]
+  vm_size                       = "Standard_DS1_v2"
   delete_os_disk_on_termination = true
 
   storage_image_reference {
@@ -280,14 +308,14 @@ resource "azurerm_virtual_machine" "mongodb" {
   }
 
   storage_os_disk {
-    name          = "${var.application}-mongodb-osdisk"
-    vhd_uri       = "${azurerm_storage_account.stor.primary_blob_endpoint}${azurerm_storage_container.storcont.name}/${var.application}-mongodb-osdisk.vhd"
+    name          = "${var.tag_application}-mongodb-osdisk"
+    vhd_uri       = "${azurerm_storage_account.stor.primary_blob_endpoint}${azurerm_storage_container.storcont.name}/${var.tag_application}-mongodb-osdisk.vhd"
     caching       = "ReadWrite"
     create_option = "FromImage"
   }
 
   os_profile {
-    computer_name  = "${var.application}-mongodb"
+    computer_name  = "${var.tag_application}-mongodb"
     admin_username = "${var.azure_image_user}"
     admin_password = "${var.azure_image_password}"
   }
@@ -320,27 +348,31 @@ resource "azurerm_virtual_machine" "mongodb" {
     }
 
     connection {
-      host        = "${azurerm_public_ip.pip.1.ip_address}"
-      user        = "${var.azure_image_user}"
-      password    = "${var.azure_image_password}"
+      host     = "${azurerm_public_ip.pip.1.ip_address}"
+      user     = "${var.azure_image_user}"
+      password = "${var.azure_image_password}"
     }
   }
 
   tags {
-    X-Contact     = "The Example Maintainer <maintainer@example.com>"
-    X-Application = "national-parks"
-    X-ManagedBy   = "Terraform"
+    X-Name        = "${var.tag_application}-${var.habitat_origin}-mongodb"
+    X-Dept        = "${var.tag_dept}"
+    X-Customer    = "${var.tag_customer}"
+    X-Project     = "${var.tag_project}"
+    X-Application = "${var.tag_application}"
+    X-Contact     = "${var.tag_contact}"
+    X-TTL         = "${var.tag_ttl}"
   }
 }
 
 # Create web application instance
 resource "azurerm_virtual_machine" "app" {
-  depends_on            = ["azurerm_virtual_machine.mongodb"]
-  name                  = "${var.application}-app"
-  location              = "${var.azure_region}"
-  resource_group_name   = "${azurerm_resource_group.rg.name}"
-  network_interface_ids = ["${azurerm_network_interface.nic.2.id}"]
-  vm_size               = "Standard_DS1_v2"
+  depends_on                    = ["azurerm_virtual_machine.mongodb"]
+  name                          = "${var.tag_application}-app"
+  location                      = "${var.azure_region}"
+  resource_group_name           = "${azurerm_resource_group.rg.name}"
+  network_interface_ids         = ["${azurerm_network_interface.nic.2.id}"]
+  vm_size                       = "Standard_DS1_v2"
   delete_os_disk_on_termination = true
 
   storage_image_reference {
@@ -351,14 +383,14 @@ resource "azurerm_virtual_machine" "app" {
   }
 
   storage_os_disk {
-    name          = "${var.application}-app-osdisk"
-    vhd_uri       = "${azurerm_storage_account.stor.primary_blob_endpoint}${azurerm_storage_container.storcont.name}/${var.application}-app-osdisk.vhd"
+    name          = "${var.tag_application}-app-osdisk"
+    vhd_uri       = "${azurerm_storage_account.stor.primary_blob_endpoint}${azurerm_storage_container.storcont.name}/${var.tag_application}-app-osdisk.vhd"
     caching       = "ReadWrite"
     create_option = "FromImage"
   }
 
   os_profile {
-    computer_name  = "${var.application}-app"
+    computer_name  = "${var.tag_application}-app"
     admin_username = "${var.azure_image_user}"
     admin_password = "${var.azure_image_password}"
   }
@@ -392,15 +424,19 @@ resource "azurerm_virtual_machine" "app" {
     }
 
     connection {
-      host        = "${azurerm_public_ip.pip.2.ip_address}"
-      user        = "${var.azure_image_user}"
-      password    = "${var.azure_image_password}"
+      host     = "${azurerm_public_ip.pip.2.ip_address}"
+      user     = "${var.azure_image_user}"
+      password = "${var.azure_image_password}"
     }
   }
 
   tags {
-    X-Contact     = "The Example Maintainer <maintainer@example.com>"
-    X-Application = "national-parks"
-    X-ManagedBy   = "Terraform"
+    X-Name        = "${var.tag_application}-${var.habitat_origin}-app"
+    X-Dept        = "${var.tag_dept}"
+    X-Customer    = "${var.tag_customer}"
+    X-Project     = "${var.tag_project}"
+    X-Application = "${var.tag_application}"
+    X-Contact     = "${var.tag_contact}"
+    X-TTL         = "${var.tag_ttl}"
   }
 }
