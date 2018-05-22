@@ -1,7 +1,7 @@
 variable "azure_region" {}
 
 variable "azure_public_key_path" {}
-variable "azure_private_key_path {}
+variable "azure_private_key_path" {}
 
 variable "azure_image_user" {
   default = "azureuser"
