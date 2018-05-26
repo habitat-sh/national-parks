@@ -1,7 +1,7 @@
 pkg_name=national-parks
 pkg_description="A sample JavaEE Web app deployed in the Tomcat8 package"
 pkg_origin=jmery
-pkg_version=6.3.0
+pkg_version=6.4.1
 pkg_maintainer="Jeff Mery <jmery@chef.io>"
 pkg_upstream_url=https://github.com/jmery/national-parks
 pkg_license=('Apache-2.0')
