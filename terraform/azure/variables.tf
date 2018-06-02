@@ -1,14 +1,7 @@
-variable "azure_region" {
-  default = "eastus"
-}
+variable "azure_region" {}
 
-variable "azure_public_key_path" {
-  default = "/path/to/ssh/key"
-}
-
-variable "azure_private_key_path" {
-  default = "/path/to/ssh/key"
-}
+variable "azure_public_key_path" {}
+variable "azure_private_key_path" {}
 
 variable "azure_image_user" {
   default = "azureuser"
@@ -26,13 +19,7 @@ variable "azure_tenant_id" {
   default = "xxxxxxx-xxxx-xxxx-xxxxxxxxxx"
 }
 
-variable "application" {
-  default = "nationalparks"
-}
-
-variable "habitat_origin" {
-  default = "scottford"
-}
+variable "habitat_origin" {}
 
 variable "bldr_url" {
   default = "https://bldr.habitat.sh"
@@ -48,4 +35,20 @@ variable "group" {
 
 variable "update_strategy" {
   default = "at-once"
+}
+
+variable "tag_dept" {}
+
+variable "tag_customer" {}
+
+variable "tag_project" {}
+
+variable "tag_application" {
+  default = "national-parks"
+}
+
+variable "tag_contact" {}
+
+variable "tag_ttl" {
+  default = "8"
 }
