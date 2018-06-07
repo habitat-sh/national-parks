@@ -8,19 +8,21 @@ start_demo() {
 }
 
 start_mongodb() {
+  runcmd "hab pkg install $HAB_ORIGIN/np-mongodb"
   runcmd "hab svc load $HAB_ORIGIN/np-mongodb"
 }
 
 start_parks() {
+  runcmd "hab pkg install $HAB_ORIGIN/national-parks"
   runcmd "hab svc load $HAB_ORIGIN/national-parks --bind database:np-mongodb.default --channel stable --strategy at-once"
 }
 
 stop_mongodb() {
-  runcmd "hab svc stop $HAB_ORIGIN/np-mongodb"
+  runcmd "hab svc unload $HAB_ORIGIN/np-mongodb"
 }
 
 stop_parks() {
-  runcmd "hab svc stop $HAB_ORIGIN/national-parks"
+  runcmd "hab svc unload $HAB_ORIGIN/national-parks"
 }
 
 stop_demo() {
