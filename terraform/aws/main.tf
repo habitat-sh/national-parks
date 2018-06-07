@@ -149,27 +149,16 @@ resource "aws_instance" "initial-peer" {
     X-TTL         = "${var.tag_ttl}"
   }
 
-  provisioner "file" {
-    content     = "${data.template_file.install_hab.rendered}"
-    destination = "/tmp/install_hab.sh"
-  }
+  provisioner "habitat" {
+    permanent_peer = true
+    use_sudo       = true
+    service_type   = "systemd"
 
-  provisioner "file" {
-    content     = "${data.template_file.initial_peer.rendered}"
-    destination = "/home/${var.aws_image_user}/hab-sup.service"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo adduser --group hab",
-      "sudo useradd -g hab hab",
-      "chmod +x /tmp/install_hab.sh",
-      "sudo /tmp/install_hab.sh",
-      "sudo mv /home/${var.aws_image_user}/hab-sup.service /etc/systemd/system/hab-sup.service",
-      "sudo systemctl daemon-reload",
-      "sudo systemctl start hab-sup",
-      "sudo systemctl enable hab-sup",
-    ]
+    connection {
+      host        = "${aws_instance.initial-peer.public_ip}"
+      user        = "${var.aws_image_user}"
+      private_key = "${file("${var.aws_key_pair_file}")}"
+    }
   }
 }
 
@@ -199,28 +188,24 @@ resource "aws_instance" "np-mongodb" {
     X-TTL         = "${var.tag_ttl}"
   }
 
-  provisioner "file" {
-    content     = "${data.template_file.install_hab.rendered}"
-    destination = "/tmp/install_hab.sh"
-  }
+  provisioner "habitat" {
+    peer         = "${aws_instance.initial-peer.public_ip}"
+    use_sudo     = true
+    service_type = "systemd"
 
-  provisioner "file" {
-    content     = "${data.template_file.sup_service.rendered}"
-    destination = "/home/${var.aws_image_user}/hab-sup.service"
-  }
+    service {
+      name     = "${var.habitat_origin}/np-mongodb"
+      topology = "standalone"
+      group    = "${var.group}"
+      channel  = "${var.release_channel}"
+      strategy = "${var.update_strategy}"
+    }
 
-  provisioner "remote-exec" {
-    inline = [
-      "sudo adduser --group hab",
-      "sudo useradd -g hab hab",
-      "chmod +x /tmp/install_hab.sh",
-      "sudo /tmp/install_hab.sh",
-      "sudo mv /home/${var.aws_image_user}/hab-sup.service /etc/systemd/system/hab-sup.service",
-      "sudo systemctl daemon-reload",
-      "sudo systemctl start hab-sup",
-      "sudo systemctl enable hab-sup",
-      "sudo hab svc load ${var.habitat_origin}/np-mongodb --group ${var.group} --channel ${var.release_channel} --strategy ${var.update_strategy}",
-    ]
+    connection {
+      host        = "${aws_instance.np-mongodb.public_ip}"
+      user        = "${var.aws_image_user}"
+      private_key = "${file("${var.aws_key_pair_file}")}"
+    }
   }
 }
 
@@ -247,50 +232,24 @@ resource "aws_instance" "national-parks" {
     X-TTL         = "${var.tag_ttl}"
   }
 
-  provisioner "file" {
-    content     = "${data.template_file.install_hab.rendered}"
-    destination = "/tmp/install_hab.sh"
+  provisioner "habitat" {
+    peer         = "${aws_instance.initial-peer.public_ip}"
+    use_sudo     = true
+    service_type = "systemd"
+
+    service {
+      binds    = ["database:np-mongodb.${var.group}"]
+      name     = "${var.habitat_origin}/national-parks"
+      topology = "standalone"
+      group    = "${var.group}"
+      channel  = "${var.release_channel}"
+      strategy = "${var.update_strategy}"
+    }
+
+    connection {
+      host        = "${self.public_ip}"
+      user        = "${var.aws_image_user}"
+      private_key = "${file("${var.aws_key_pair_file}")}"
+    }
   }
-
-  provisioner "file" {
-    content     = "${data.template_file.sup_service.rendered}"
-    destination = "/home/${var.aws_image_user}/hab-sup.service"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo adduser --group hab",
-      "sudo useradd -g hab hab",
-      "chmod +x /tmp/install_hab.sh",
-      "sudo /tmp/install_hab.sh",
-      "sudo mv /home/${var.aws_image_user}/hab-sup.service /etc/systemd/system/hab-sup.service",
-      "sudo systemctl daemon-reload",
-      "sudo systemctl start hab-sup",
-      "sudo systemctl enable hab-sup",
-      "sudo hab svc load ${var.habitat_origin}/national-parks --group ${var.group} --channel ${var.release_channel} --strategy ${var.update_strategy} --bind database:np-mongodb.${var.group}",
-    ]
-  }
-}
-
-////////////////////////////////
-// Templates
-
-data "template_file" "initial_peer" {
-  template = "${file("${path.module}/../templates/hab-sup.service")}"
-
-  vars {
-    flags = "--auto-update --listen-gossip 0.0.0.0:9638 --listen-http 0.0.0.0:9631 --permanent-peer"
-  }
-}
-
-data "template_file" "sup_service" {
-  template = "${file("${path.module}/../templates/hab-sup.service")}"
-
-  vars {
-    flags = "--auto-update --peer ${aws_instance.initial-peer.private_ip} --listen-gossip 0.0.0.0:9638 --listen-http 0.0.0.0:9631"
-  }
-}
-
-data "template_file" "install_hab" {
-  template = "${file("${path.module}/../templates/install-hab.sh")}"
 }
