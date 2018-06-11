@@ -1,40 +1,15 @@
 #!/bin/bash -x
 
-debug() {
-  if [ ! -z "$DEBUG" ]; then
-    echo "$*"
-  fi
-}
-
-echo "Preparing TOMCAT_HOME..."
-
-debug "sys.ip        = {{sys.ip}}"
-debug "sys.hostname  = {{sys.hostname}}"
-debug "pkg.origin    = {{pkg.origin}}"
-debug "pkg.name      = {{pkg.name}}"
-debug "pkg.version   = {{pkg.version}}"
-debug "pkg.release   = {{pkg.release}}"
-debug "pkg.ident     = {{pkg.ident}}"
-debug "pkg.deps      = {{pkg.deps}}"
-debug "pkg.exposes   = {{pkg.exposes}}"
-debug "pkg.svc_path          = {{pkg.svc_path}}"
-debug "pkg.svc_config_path   = {{pkg.svc_config_path}}"
-debug "pkg.svc_data_path     = {{pkg.svc_data_path}}"
-debug "pkg.svc_files_path    = {{pkg.svc_files_path}}"
-debug "pkg.svc_static_path   = {{pkg.svc_static_path}}"
-debug "pkg.svc_var_path      = {{pkg.svc_var_path}}"
-
-# Move directories that ship in the package into place
+# Copy directories that ship in the package into place
 cp -a {{pkgPathFor "core/tomcat8"}}/tc {{pkg.svc_var_path}}/
 
+# Copy our war file into the runtime tomcat directory
 cp {{pkg.path}}/*.war {{pkg.svc_var_path}}/tc/webapps
 
 # Following lines are to copy project tomcat configs to run time tomcat8 directory
-for file in $(cd {{pkg.svc_config_path}}; ls -1 *.xml)
-do
-  echo "Linking $file"
-  target="${file//_//}"
-  ln -vsf {{pkg.svc_config_path}}/$file {{pkg.svc_var_path}}/tc/$target
-done
+
+ln -vsf {{pkg.svc_config_path}}/server.xml {{pkg.svc_var_path}}/tc/conf/server.xml
+ln -vsf {{pkg.svc_config_path}}/tomcat-users.xml {{pkg.svc_var_path}}/tc/conf/tomcat-users.xml
+ln -vsf {{pkg.svc_config_path}}/webapps_host-manager_META-INF_context.xml {{pkg.svc_var_path}}/tc/conf/webapps_host-manager_META-INF_context.xml
 
 echo "Done preparing TOMCAT_HOME"
