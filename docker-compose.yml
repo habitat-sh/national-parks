@@ -14,4 +14,4 @@ services:
       - mongodb
     depends_on:
       - mongodb
-    command: --strategy at-once --channel unstable --peer mongodb --bind database:np-mongodb.default
+    command: --strategy at-once --channel stable --peer mongodb --bind database:np-mongodb.default
