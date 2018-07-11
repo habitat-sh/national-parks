@@ -110,30 +110,24 @@ resource "aws_security_group" "national-parks" {
 ////////////////////////////////
 // Initial Peer
 
-data "aws_ami" "ubuntu" {
+data "aws_ami" "centos" {
   most_recent = true
+  owners      = ["446539779517"]
 
   filter {
     name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-20180109*"]
+    values = ["chef-highperf-centos7-*"]
   }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["099720109477"]
 }
 
 resource "aws_instance" "initial-peer" {
   connection {
-    user        = "${var.aws_image_user}"
+    user        = "${var.aws_ami_user}"
     private_key = "${file("${var.aws_key_pair_file}")}"
   }
 
-  ami                         = "${data.aws_ami.ubuntu.id}"
-  instance_type               = "m4.large"
+  ami                         = "${var.aws_ami_id == "" ? data.aws_ami.centos.id : var.aws_ami_id}"
+  instance_type               = "${var.aws_instance_type}"
   key_name                    = "${var.aws_key_pair_name}"
   subnet_id                   = "${aws_subnet.default.id}"
   vpc_security_group_ids      = ["${aws_security_group.national-parks.id}"]
@@ -156,7 +150,7 @@ resource "aws_instance" "initial-peer" {
 
   provisioner "file" {
     content     = "${data.template_file.initial_peer.rendered}"
-    destination = "/home/${var.aws_image_user}/hab-sup.service"
+    destination = "/home/${var.aws_ami_user}/hab-sup.service"
   }
 
   provisioner "remote-exec" {
@@ -165,7 +159,7 @@ resource "aws_instance" "initial-peer" {
       "sudo useradd -g hab hab",
       "chmod +x /tmp/install_hab.sh",
       "sudo /tmp/install_hab.sh",
-      "sudo mv /home/${var.aws_image_user}/hab-sup.service /etc/systemd/system/hab-sup.service",
+      "sudo mv /home/${var.aws_ami_user}/hab-sup.service /etc/systemd/system/hab-sup.service",
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
@@ -178,12 +172,14 @@ resource "aws_instance" "initial-peer" {
 
 resource "aws_instance" "np-mongodb" {
   connection {
-    user        = "${var.aws_image_user}"
+    user        = "${var.aws_ami_user}"
     private_key = "${file("${var.aws_key_pair_file}")}"
   }
 
-  ami                         = "${data.aws_ami.ubuntu.id}"
-  instance_type               = "m4.large"
+  depends_on = ["aws_instance.initial-peer"]
+
+  ami                         = "${var.aws_ami_id == "" ? data.aws_ami.centos.id : var.aws_ami_id}"
+  instance_type               = "${var.aws_instance_type}"
   key_name                    = "${var.aws_key_pair_name}"
   subnet_id                   = "${aws_subnet.default.id}"
   vpc_security_group_ids      = ["${aws_security_group.national-parks.id}"]
@@ -206,7 +202,7 @@ resource "aws_instance" "np-mongodb" {
 
   provisioner "file" {
     content     = "${data.template_file.sup_service.rendered}"
-    destination = "/home/${var.aws_image_user}/hab-sup.service"
+    destination = "/home/${var.aws_ami_user}/hab-sup.service"
   }
 
   provisioner "remote-exec" {
@@ -215,10 +211,11 @@ resource "aws_instance" "np-mongodb" {
       "sudo useradd -g hab hab",
       "chmod +x /tmp/install_hab.sh",
       "sudo /tmp/install_hab.sh",
-      "sudo mv /home/${var.aws_image_user}/hab-sup.service /etc/systemd/system/hab-sup.service",
+      "sudo mv /home/${var.aws_ami_user}/hab-sup.service /etc/systemd/system/hab-sup.service",
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
+      "sleep 15",
       "sudo hab svc load ${var.habitat_origin}/np-mongodb --group ${var.group} --channel ${var.release_channel} --strategy ${var.update_strategy}",
     ]
   }
@@ -226,12 +223,14 @@ resource "aws_instance" "np-mongodb" {
 
 resource "aws_instance" "national-parks" {
   connection {
-    user        = "${var.aws_image_user}"
+    user        = "${var.aws_ami_user}"
     private_key = "${file("${var.aws_key_pair_file}")}"
   }
 
-  ami                         = "${data.aws_ami.ubuntu.id}"
-  instance_type               = "m4.large"
+  depends_on = ["aws_instance.initial-peer"]
+
+  ami                         = "${var.aws_ami_id == "" ? data.aws_ami.centos.id : var.aws_ami_id}"
+  instance_type               = "${var.aws_instance_type}"
   key_name                    = "${var.aws_key_pair_name}"
   subnet_id                   = "${aws_subnet.default.id}"
   vpc_security_group_ids      = ["${aws_security_group.national-parks.id}"]
@@ -254,7 +253,7 @@ resource "aws_instance" "national-parks" {
 
   provisioner "file" {
     content     = "${data.template_file.sup_service.rendered}"
-    destination = "/home/${var.aws_image_user}/hab-sup.service"
+    destination = "/home/${var.aws_ami_user}/hab-sup.service"
   }
 
   provisioner "remote-exec" {
@@ -263,10 +262,11 @@ resource "aws_instance" "national-parks" {
       "sudo useradd -g hab hab",
       "chmod +x /tmp/install_hab.sh",
       "sudo /tmp/install_hab.sh",
-      "sudo mv /home/${var.aws_image_user}/hab-sup.service /etc/systemd/system/hab-sup.service",
+      "sudo mv /home/${var.aws_ami_user}/hab-sup.service /etc/systemd/system/hab-sup.service",
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
+      "sleep 15",
       "sudo hab svc load ${var.habitat_origin}/national-parks --group ${var.group} --channel ${var.release_channel} --strategy ${var.update_strategy} --bind database:np-mongodb.${var.group}",
     ]
   }
