@@ -1,30 +1,56 @@
-## Running in docker studio
+# National-Parks Habitat Demo
+
+Build a map of all the United States national parks using [Habitat](https://habitat.sh/)! Build, deploy, and manage the application to any cloud, virtual machine, or container.
+
+With this demo, you'll discover the magical **space-cats** living inside of [Habitat](https://habitat.sh/), and learn the power of packaging, shipping, and updating applications in one atomic format.
+
+## Build
+
+You can build the application by simply [installing Habitat](https://www.habitat.sh/docs/install-habitat/) on your workstation and using the Habitat Studio.
+
+1. Clone the repo.
+2. `cd national-parks`
+3. `hab studio enter`
+4. `build`
+
+Watch as the application builds! It should take a few minutes.
+
+If you're showing this as a demo to others, this is a good time to talk about the plan.sh and show how it relates to the build process.
+
+## Export to Docker
+
+Ready to see what the app looks like on your local workstation with Docker?
+
+Inside the Studio, run:
+1. hab pkg export docker path/to/build.hart
+
+Now you'll have a Docker container on your local workstation.
+
+2. Modify national-parks/docker-compose.yml to match your origin.
 
 ```
-# Windows
-$env:HAB_DOCKER_OPTS="-p 8080:8080"
-# Linux
-export HAB_DOCKER_OPTS="-p 8080:8080"
-
-
-hab studio enter
-start_parks
-
+   national-parks:
+    image: myorigin/national-parks
 ```
 
-Open your browser to `https://localhost:8080/national-parks` to see the app.
+3. `docker-compose up`
 
-## Starting the supervisor in studio
-```
-hab sup run > /hab/sup/default/sup.log &
-```
+4. Browse to http://localhost:8081/national-parks to see the app.
 
-## Pre-Demo checklist
+## Provision AWS
 
-* Have studio open
-* build at least once
-* start np-mongodb
-* Have open SSH sessions to hab1-3 and docker host
-* increment NP version and commit (but do not push)
-* make sure mongodb container is running on docker host
-* have browser tabs open to my origins, local app, and azure app
+Let's show the app in AWS using Terraform!
+
+1. [Install Terraform](https://www.terraform.io/downloads.html)
+
+2. Create a `terraform.tfvars` in the `national-parks/terraform/aws` directory. An example is provided for you at `national-parks/terraform/aws/example.tfvars`
+
+3. `cd national-parks/terraform/aws`
+
+4. `terraform init`
+
+5. `terraform plan`
+
+6. `terraform apply -auto-approve`
+
+7. Browse to the URL output by Terraform for you.
