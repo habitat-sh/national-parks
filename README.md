@@ -59,27 +59,8 @@ Let's show the app in AWS using Terraform!
 
 Let's update the appliation with some brand new colors to make a new version.
 
-1. Modify the source code.
+1. Modify `src/main/webapp/index.html` by replacing it with the contents of `index.html.new`. You can revert and show a rollback too, by using `index.html.old`.
 
-In `src/main/webapp/index.html`:
-  - Line 5 to:
-  ```
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css" integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ==" crossorigin=""/>
-  ```
-  - Line 41 to:
-  ```
-  <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js" integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw==" crossorigin=""></script>
-  <script type="text/coffeescript" src="scripts/sprite.coffee"></script>
-  <script type="text/coffeescript" src "script.coffee"></script>
-  ```
-  - Line 51-54, to:
-  ```
-  L.tileLayer('https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=816f897a456b4595a09bf8e1d42cfa0b', {
-      maxZoom: 18,
-      attribution: 'Maps © <a href="http://www.thunderforest.com">Thunderforest</a>, Data © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
-  }).addTo(map);
-  ```
-  - Line 84, to:
-  ```
-  [nationalPark.location.coordinates[1], nationalPark.location.coordinates[0]], { icon: L.icon({ iconUrl: 'images/redicon.png', iconAnchor: [12.5,40]}) }).bindPopup(popupInformation);
-  ```
+2. Rebuild the app in the Habitat Studio.
+
+3. Re-export the container, or upload the new package to builder.

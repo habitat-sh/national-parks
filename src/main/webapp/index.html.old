@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Map of National Parks</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css"/>
+    <script src="https://code.jquery.com/jquery-2.0.0.min.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet' type='text/css'>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <style type="text/css">
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        html, body, #map {
+            height: 100%;
+            font-family: 'oswald';
+        }
+
+        .leaflet-container .leaflet-control-zoom {
+            margin-left: 13px;
+            margin-top: 70px;
+        }
+
+        #map {
+            z-index: 1;
+        }
+
+        #title {
+            z-index: 2;
+            position: absolute;
+            left: 10px;
+        }
+    </style>
+
+</head>
+<body>
+<h1 id="title">U.S. National Parks v6.3</h1>
+
+<div id="map"></div>
+<script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+<script>
+    center = new L.LatLng(39.82, -98.57);
+    zoom = 5;
+
+    var map = L.map('map').setView(center, zoom);
+    var markerLayerGroup = L.layerGroup().addTo(map);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: 'Map data &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
+    }).addTo(map);
+
+    function getPins(e) {
+        bounds = map.getBounds();
+
+        url = "ws/parks/within?lat1=" +
+                bounds.getNorthEast().lat + "&lon1=" + bounds.getNorthEast().lng +
+                "&lat2=" + bounds.getSouthWest().lat + "&lon2=" + bounds.getSouthWest().lng;
+
+        $.get(url, pinTheMap, "json")
+    }
+
+    Number.prototype.toCurrencyString = function () {
+        return "$" + Math.floor(this).toLocaleString() + (this % 1).toFixed(2).toLocaleString().replace(/^0/, '');
+    }
+
+    function pinTheMap(data) {
+        //clear the current pins
+        map.removeLayer(markerLayerGroup);
+
+        //add the new pins
+        var markerArray = new Array(data.length)
+        for (var i = 0; i < data.length; i++) {
+            nationalPark = data[i];
+            var popupInformation = "<b>" + nationalPark.locationName + "</b></br>" +
+                    nationalPark.address + "</br>" +
+                    nationalPark.city + ", " + nationalPark.state + "</br>" +
+                    nationalPark.zipCode + "</br>";
+
+            markerArray[i] = L.marker(
+                    [nationalPark.location.coordinates[1], nationalPark.location.coordinates[0]]).bindPopup(popupInformation);
+        }
+
+        markerLayerGroup = L.layerGroup(markerArray).addTo(map);
+    }
+
+    map.on('dragend', getPins);
+    map.on('zoomend', getPins);
+    map.whenReady(getPins)
+
+</script>
+</body>
+</html>
