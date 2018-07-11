@@ -1,0 +1,5 @@
+[habitat-updater]
+plan_path = "habitat"
+paths = [
+  "src/*",
+]

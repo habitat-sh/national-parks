@@ -16,7 +16,7 @@ metadata:
 customVersion: v1beta2
 spec:
   v1beta2:
-    image: habitat/mongodb
+    image: chefdemo/mongodb
     count: 1
     service:
       name: mongodb
@@ -33,7 +33,7 @@ metadata:
 customVersion: v1beta2
 spec:
   v1beta2:
-    image: habitat/national-parks
+    image: chefdemo/national-parks
     count: 1
     service:
       name: national-parks
