@@ -155,8 +155,8 @@ resource "aws_instance" "initial-peer" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo adduser --group hab",
-      "sudo useradd -g hab hab",
+      "sudo groupadd hab",
+      "sudo adduser hab -g hab",
       "chmod +x /tmp/install_hab.sh",
       "sudo /tmp/install_hab.sh",
       "sudo mv /home/${var.aws_ami_user}/hab-sup.service /etc/systemd/system/hab-sup.service",
@@ -207,8 +207,8 @@ resource "aws_instance" "np-mongodb" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo adduser --group hab",
-      "sudo useradd -g hab hab",
+      "sudo groupadd hab",
+      "sudo adduser hab -g hab",
       "chmod +x /tmp/install_hab.sh",
       "sudo /tmp/install_hab.sh",
       "sudo mv /home/${var.aws_ami_user}/hab-sup.service /etc/systemd/system/hab-sup.service",
@@ -258,8 +258,8 @@ resource "aws_instance" "national-parks" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo adduser --group hab",
-      "sudo useradd -g hab hab",
+      "sudo groupadd hab",
+      "sudo adduser hab -g hab",
       "chmod +x /tmp/install_hab.sh",
       "sudo /tmp/install_hab.sh",
       "sudo mv /home/${var.aws_ami_user}/hab-sup.service /etc/systemd/system/hab-sup.service",
