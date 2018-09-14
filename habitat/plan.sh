@@ -10,7 +10,7 @@ pkg_svc_user="root"
 pkg_binds=(
   [database]="port"
 )
-pkg_exports=
+pkg_exports=(
   [port]=tomcat_port
 )
 pkg_exposes=(port)
