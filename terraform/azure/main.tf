@@ -56,7 +56,7 @@ resource "azurerm_public_ip" "pip" {
   location                     = "${var.azure_region}"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
   public_ip_address_allocation = "static"
-  count                        = 3
+  count                        = 8
 
   tags {
     X-Name        = "${var.tag_application}-${var.habitat_origin}-pip-${count.index}"
@@ -88,8 +88,20 @@ resource "azurerm_network_security_group" "sg" {
   }
 
   security_rule {
-    name                       = "8080"
+    name                       = "HTTP"
     priority                   = 1002
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "8080"
+    priority                   = 1003
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -101,7 +113,7 @@ resource "azurerm_network_security_group" "sg" {
 
   security_rule {
     name                       = "9631"
-    priority                   = 1003
+    priority                   = 1004
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "*"
@@ -113,7 +125,7 @@ resource "azurerm_network_security_group" "sg" {
 
   security_rule {
     name                       = "9638"
-    priority                   = 1004
+    priority                   = 1005
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "*"
@@ -125,7 +137,7 @@ resource "azurerm_network_security_group" "sg" {
 
   security_rule {
     name                       = "27017"
-    priority                   = 1005
+    priority                   = 1006
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -137,12 +149,36 @@ resource "azurerm_network_security_group" "sg" {
 
   security_rule {
     name                       = "28017"
-    priority                   = 1006
+    priority                   = 1007
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "28017"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "8085"
+    priority                   = 1008
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "8085"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "8000"
+    priority                   = 1009
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "8000"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
@@ -164,7 +200,7 @@ resource "azurerm_network_interface" "nic" {
   location                  = "${var.azure_region}"
   resource_group_name       = "${azurerm_resource_group.rg.name}"
   network_security_group_id = "${azurerm_network_security_group.sg.id}"
-  count                     = 3
+  count                     = 8
 
   ip_configuration {
     name                          = "ipconfig${count.index}"
@@ -290,13 +326,13 @@ resource "azurerm_virtual_machine" "initial-peer" {
   }
 }
 
-# Create mongodb instance
-resource "azurerm_virtual_machine" "mongodb" {
-  depends_on                    = ["azurerm_virtual_machine.initial-peer"]
-  name                          = "${var.tag_application}-mongodb"
+# Create haproxy application instance
+resource "azurerm_virtual_machine" "lb" {
+  depends_on                    = ["azurerm_virtual_machine.app-1"]
+  name                          = "${var.tag_application}-lb"
   location                      = "${var.azure_region}"
   resource_group_name           = "${azurerm_resource_group.rg.name}"
-  network_interface_ids         = ["${azurerm_network_interface.nic.1.id}"]
+  network_interface_ids         = ["${azurerm_network_interface.nic.7.id}"]
   vm_size                       = "Standard_DS1_v2"
   delete_os_disk_on_termination = true
 
@@ -308,14 +344,14 @@ resource "azurerm_virtual_machine" "mongodb" {
   }
 
   storage_os_disk {
-    name          = "${var.tag_application}-mongodb-osdisk"
-    vhd_uri       = "${azurerm_storage_account.stor.primary_blob_endpoint}${azurerm_storage_container.storcont.name}/${var.tag_application}-mongodb-osdisk.vhd"
+    name          = "${var.tag_application}-lb-osdisk"
+    vhd_uri       = "${azurerm_storage_account.stor.primary_blob_endpoint}${azurerm_storage_container.storcont.name}/${var.tag_application}-lb-osdisk.vhd"
     caching       = "ReadWrite"
     create_option = "FromImage"
   }
 
   os_profile {
-    computer_name  = "${var.tag_application}-mongodb"
+    computer_name  = "${var.tag_application}-lb"
     admin_username = "${var.azure_image_user}"
     admin_password = "${var.azure_image_password}"
   }
@@ -340,98 +376,24 @@ resource "azurerm_virtual_machine" "mongodb" {
     service_type = "systemd"
 
     service {
-      name     = "${var.habitat_origin}/np-mongodb"
+      binds    = ["backend:national-parks.${var.group}"]
+      name     = "core/haproxy"
       topology = "standalone"
       group    = "${var.group}"
       channel  = "${var.release_channel}"
       strategy = "${var.update_strategy}"
+      user_toml = "${file("files/haproxy.toml")}"
     }
 
     connection {
-      host     = "${azurerm_public_ip.pip.1.ip_address}"
+      host     = "${azurerm_public_ip.pip.7.ip_address}"
       user     = "${var.azure_image_user}"
       password = "${var.azure_image_password}"
     }
   }
 
   tags {
-    X-Name        = "${var.tag_application}-${var.habitat_origin}-mongodb"
-    X-Dept        = "${var.tag_dept}"
-    X-Customer    = "${var.tag_customer}"
-    X-Project     = "${var.tag_project}"
-    X-Application = "${var.tag_application}"
-    X-Contact     = "${var.tag_contact}"
-    X-TTL         = "${var.tag_ttl}"
-  }
-}
-
-# Create web application instance
-resource "azurerm_virtual_machine" "app" {
-  depends_on                    = ["azurerm_virtual_machine.mongodb"]
-  name                          = "${var.tag_application}-app"
-  location                      = "${var.azure_region}"
-  resource_group_name           = "${azurerm_resource_group.rg.name}"
-  network_interface_ids         = ["${azurerm_network_interface.nic.2.id}"]
-  vm_size                       = "Standard_DS1_v2"
-  delete_os_disk_on_termination = true
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name          = "${var.tag_application}-app-osdisk"
-    vhd_uri       = "${azurerm_storage_account.stor.primary_blob_endpoint}${azurerm_storage_container.storcont.name}/${var.tag_application}-app-osdisk.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-  }
-
-  os_profile {
-    computer_name  = "${var.tag_application}-app"
-    admin_username = "${var.azure_image_user}"
-    admin_password = "${var.azure_image_password}"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-
-    ssh_keys {
-      path     = "/home/${var.azure_image_user}/.ssh/authorized_keys"
-      key_data = "${file("${var.azure_public_key_path}")}"
-    }
-  }
-
-  boot_diagnostics {
-    enabled     = "true"
-    storage_uri = "${azurerm_storage_account.stor.primary_blob_endpoint}"
-  }
-
-  provisioner "habitat" {
-    peer         = "${azurerm_public_ip.pip.0.ip_address}"
-    use_sudo     = true
-    service_type = "systemd"
-
-    service {
-      binds    = ["database:np-mongodb.${var.group}"]
-      name     = "${var.habitat_origin}/national-parks"
-      topology = "standalone"
-      group    = "${var.group}"
-      channel  = "${var.release_channel}"
-      strategy = "${var.update_strategy}"
-    }
-
-    connection {
-      host     = "${azurerm_public_ip.pip.2.ip_address}"
-      user     = "${var.azure_image_user}"
-      password = "${var.azure_image_password}"
-    }
-  }
-
-  tags {
-    X-Name        = "${var.tag_application}-${var.habitat_origin}-app"
+    X-Name        = "${var.tag_application}-${var.habitat_origin}-lb"
     X-Dept        = "${var.tag_dept}"
     X-Customer    = "${var.tag_customer}"
     X-Project     = "${var.tag_project}"

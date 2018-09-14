@@ -1,4 +1,6 @@
-variable "azure_region" {}
+variable "azure_region" { 
+  default = "West US"
+}
 
 variable "azure_public_key_path" {}
 variable "azure_private_key_path" {}
@@ -19,7 +21,9 @@ variable "azure_tenant_id" {
   default = "xxxxxxx-xxxx-xxxx-xxxxxxxxxx"
 }
 
-variable "habitat_origin" {}
+variable "habitat_origin" {
+  default = "nrycar"
+}
 
 variable "bldr_url" {
   default = "https://bldr.habitat.sh"
@@ -37,18 +41,26 @@ variable "update_strategy" {
   default = "at-once"
 }
 
-variable "tag_dept" {}
+variable "tag_dept" {
+  default = "Product Marketing"
+}
 
-variable "tag_customer" {}
+variable "tag_customer" {
+  default = "Wave Demo"
+}
 
-variable "tag_project" {}
+variable "tag_project" {
+  default = "Wave Demo"
+}
 
 variable "tag_application" {
   default = "national-parks"
 }
 
-variable "tag_contact" {}
+variable "tag_contact" {
+  default = "Nick Rycar"
+}
 
 variable "tag_ttl" {
-  default = "8"
+  default = "100"
 }
