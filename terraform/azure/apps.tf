@@ -53,7 +53,7 @@ resource "azurerm_virtual_machine" "app-1" {
       topology = "standalone"
       group    = "${var.group}"
       channel  = "${var.release_channel}"
-      strategy = "${var.update_strategy}"
+      strategy = "rolling"
     }
 
     connection {
