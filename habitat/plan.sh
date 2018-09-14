@@ -1,7 +1,7 @@
 pkg_name=national-parks
 pkg_description="A sample JavaEE Web app deployed in the Tomcat8 package"
 pkg_origin=nrycar
-pkg_version=6.5.1
+pkg_version=6.5.2
 pkg_maintainer="Bill Meyer <bill@chef.io>"
 pkg_license=('Apache-2.0')
 pkg_deps=(core/tomcat8 core/jre8)
@@ -10,7 +10,7 @@ pkg_svc_user="root"
 pkg_binds=(
   [database]="port"
 )
-pkg_exports=(
+pkg_exports=
   [port]=tomcat_port
 )
 pkg_exposes=(port)
