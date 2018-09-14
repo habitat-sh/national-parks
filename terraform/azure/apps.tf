@@ -52,8 +52,8 @@ resource "azurerm_virtual_machine" "app-1" {
       name     = "${var.habitat_origin}/national-parks"
       topology = "standalone"
       group    = "${var.group}"
-      channel  = "${var.release_channel}"
-      strategy = "rolling"
+      channel  = "unstable"
+      strategy = "at-once"
     }
 
     connection {
@@ -130,7 +130,7 @@ resource "azurerm_virtual_machine" "app-2" {
       topology = "standalone"
       group    = "${var.group}"
       channel  = "${var.release_channel}"
-      strategy = "rolling"
+      strategy = "at-once"
     }
 
     connection {
@@ -207,7 +207,7 @@ resource "azurerm_virtual_machine" "app-3" {
       topology = "standalone"
       group    = "${var.group}"
       channel  = "${var.release_channel}"
-      strategy = "rolling"
+      strategy = "at-once"
     }
 
     connection {

@@ -377,7 +377,7 @@ resource "azurerm_virtual_machine" "lb" {
 
     service {
       binds    = ["backend:national-parks.${var.group}"]
-      name     = "core/haproxy"
+      name     = "${var.habitat_origin}/haproxy"
       topology = "standalone"
       group    = "${var.group}"
       channel  = "${var.release_channel}"
