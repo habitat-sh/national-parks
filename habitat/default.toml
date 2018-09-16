@@ -1,6 +1,7 @@
 tomcat_port = 8080
 mongodb_service_host = "localhost"
 mongodb_service_port = 27017
+deployment = false
 
 #
 # Configs below are for Tomcat Server

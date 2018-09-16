@@ -12,6 +12,7 @@ pkg_binds=(
 )
 pkg_exports=(
   [port]=tomcat_port
+  [deployment]=deployment
 )
 pkg_exposes=(port)
 
