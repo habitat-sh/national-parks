@@ -1,0 +1,15 @@
+maxconn = 32
+httpchk = 'GET /national-parks'
+
+[front-end]
+listen = '*'
+port = 8085
+mode = 'http'
+
+[status]
+enabled = true
+listen = '*'
+port = 8000
+user = 'admin'
+password = 'password'
+uri = '/haproxy-stats'
