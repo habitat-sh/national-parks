@@ -6,7 +6,7 @@ services:
     environment:
       HAB_MONGODB: "[mongod.net]\nbind_ip = '0.0.0.0'\n[mongod.security]\ncluster_auth_mode = ''"
   national-parks:
-    image: scottford/national-parks
+    image: nrycar/national-parks
     ports:
       - 8081:8080
       - 9631:9631
@@ -14,4 +14,4 @@ services:
       - mongodb
     depends_on:
       - mongodb
-    command: --strategy at-once --channel unstable --peer mongodb --bind database:np-mongodb.default
+    command: --strategy none --peer mongodb --bind database:np-mongodb.default
