@@ -1,15 +1,21 @@
 #!/bin/bash -x
 
-# Copy directories that ship in the package into place
+echo "Preparing TOMCAT_HOME..."
+# Move directories that ship in the package into place
 cp -a {{pkgPathFor "core/tomcat8"}}/tc {{pkg.svc_var_path}}/
 
-# Copy our war file into the runtime tomcat directory
 cp {{pkg.path}}/*.war {{pkg.svc_var_path}}/tc/webapps
 
 # Following lines are to copy project tomcat configs to run time tomcat8 directory
-
-ln -vsf {{pkg.svc_config_path}}/server.xml {{pkg.svc_var_path}}/tc/conf/server.xml
-ln -vsf {{pkg.svc_config_path}}/tomcat-users.xml {{pkg.svc_var_path}}/tc/conf/tomcat-users.xml
-ln -vsf {{pkg.svc_config_path}}/webapps_host-manager_META-INF_context.xml {{pkg.svc_var_path}}/tc/conf/webapps_host-manager_META-INF_context.xml
+for file in $(cd {{pkg.svc_config_path}}; ls -1 *.xml)
+do
+  echo "Linking $file"
+  target="${file//_//}"
+  ln -vsf {{pkg.svc_config_path}}/$file {{pkg.svc_var_path}}/tc/$target
+done
 
 echo "Done preparing TOMCAT_HOME"
+
+{{#if bind.database ~}}
+{{pkgPathFor "core/mongo-tools"}}/bin/mongoimport --drop -d demo -c nationalparks --type json --jsonArray --file {{pkg.path}}/national-parks.json --host={{bind.database.first.sys.ip}} --port={{bind.database.first.cfg.port}}
+{{/if ~}}

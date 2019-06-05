@@ -1,0 +1,7 @@
+[mongod]
+
+[mongod.net]
+bind_ip = "0.0.0.0"
+
+[mongod.security]
+cluster_auth_mode = ""

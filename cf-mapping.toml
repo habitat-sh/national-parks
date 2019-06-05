@@ -1,2 +1,0 @@
-tomcat_port = "$TOMCAT_PORT"
-CF_INSTANCE_PORTS="[{external:8080,internal:8080},{external:9631,internal:9631},{external:9638,internal:9638}]"

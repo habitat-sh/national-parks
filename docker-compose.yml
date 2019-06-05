@@ -1,17 +1,18 @@
 version: '2'
 services:
   mongodb:
-    image: scottford/np-mongodb
-    command: --strategy at-once
+    image: core/mongodb
     environment:
-      HAB_MONGODB: "[mongod.net]\nbind_ip = '0.0.0.0'\n[mongod.security]\ncluster_auth_mode = ''"
+      HAB_MONGODB: "[mongod.net]\nbind_ip = '0.0.0.0'\n[mongod.security]\ncluster_auth_mode = ''" 
   national-parks:
-    image: nrycar/national-parks
+    image: scottford/national-parks:latest
+    command: --peer mongodb --bind database:mongodb.default
+  haproxy:
+    image: core/haproxy:latest
+    command: --peer national-parks --bind backend:national-parks.default
     ports:
-      - 8081:8080
+      - 8085:8085
       - 9631:9631
-    links:
-      - mongodb
-    depends_on:
-      - mongodb
-    command: --strategy none --peer mongodb --bind database:np-mongodb.default
+      - 8000:8000
+    environment:
+      HAB_HAPROXY: "maxconn = '32'\nhttpchk = 'GET /national-parks'\n[front-end]\nlisten = '*'\nport = '8085'\nmode = 'http'\n[status]\nenabled = true\nlisten = '*'\nport = '8000'\nuser = 'admin'\npassword = 'password'\nuri = '/haproxy-stats'"
